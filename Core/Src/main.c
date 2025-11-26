@@ -63,6 +63,7 @@ static void MX_SPI1_Init(void);
   extern void Flash_Transmit(uint8_t num_pin, uint32_t addr);
   extern uint32_t addr;
   uint8_t experement = 0;
+  uint8_t chip = 0;
 // Мой код)
 /* USER CODE END 0 */
 
@@ -75,8 +76,7 @@ int main(void)
 
   /* USER CODE BEGIN 1 */
   extern void Flash_cmd(uint8_t cmd, uint8_t CS);
-  Flash_cmd(0x98, 0);
-  
+ // Flash_cmd(0x98, 0);
   extern void test_1();
   /* USER CODE END 1 */
 
@@ -111,15 +111,21 @@ int main(void)
     /* USER CODE END WHILE */
    //HAL_GPIO_WritePin(GPIOE, 0, GPIO_PIN_SET);
     if (experement == 1) {
-        Flash_Transmit(0, 0x000000);
+        Flash_Transmit(chip, 0x000000);
         experement = 0;
     }
     if (experement == 2) {
-      Flash_Receive(0, 0x000000);
+      Flash_Receive(chip, 0x000000);
       experement = 0;
     }
     if (experement == 3) {
       test_1();
+          experement = 0;
+    }
+     if (experement == 4) {
+      Flash_cmd(0x06, chip);
+      HAL_Delay(10);
+      Flash_cmd(0x98, chip);
           experement = 0;
     }
 
@@ -305,7 +311,7 @@ static void MX_GPIO_Init(void)
   {
       if (hspi == &hspi1)      
       {
-          FLASH_CS_HIGH(CS_num);
+          //FLASH_CS_HIGH(CS_num);
           DMA_TX_Finish = 1;
       }
   }
@@ -314,7 +320,7 @@ static void MX_GPIO_Init(void)
   {
       if (hspi == &hspi1)      
       {
-          FLASH_CS_HIGH(CS_num);
+         //FLASH_CS_HIGH(CS_num);
           DMA_RX_Finish = 1;
       }
   }

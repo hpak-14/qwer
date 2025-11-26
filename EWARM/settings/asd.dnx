@@ -13,7 +13,7 @@
         <MemConfigValue>C:\Program Files\IAR Systems\Embedded Workbench 9.2\arm\config\debugger\ST\STM32F207VE.ddf</MemConfigValue>
     </PlDriver>
     <DebugChecksum>
-        <Checksum>1377673821</Checksum>
+        <Checksum>1875272158</Checksum>
     </DebugChecksum>
     <Exceptions>
         <StopOnUncaught>_ 0</StopOnUncaught>
@@ -72,6 +72,12 @@
         <EnableCache>0</EnableCache>
         <EnforceMemoryConfiguration>1</EnforceMemoryConfiguration>
     </ArmDriver>
+    <array_types>
+        <Fmt0>uint8_t[256]	3	0</Fmt0>
+        <Fmt1>uint8_t[259]	3	0</Fmt1>
+        <Fmt2>uint8_t[260]	3	0</Fmt2>
+        <Fmt3>uint8_t[261]	3	0</Fmt3>
+    </array_types>
     <Trace2>
         <Enabled>0</Enabled>
         <ShowSource>0</ShowSource>
