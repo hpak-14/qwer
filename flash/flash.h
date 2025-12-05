@@ -2,9 +2,6 @@
 #include "stm32f2xx_hal_spi.h"
 #include "stm32f2xx_hal_gpio.h"
 #include "stm32f2xx_hal_dma.h"
-#include <string.h>
-#include <stdint.h>
-#include <stdbool.h>
 
 extern SPI_HandleTypeDef hspi1;
 void Flash_WaitBusy(void);
@@ -12,7 +9,6 @@ void Flash_cmd(uint8_t cmd, uint8_t CS);
 void Flash_Transmit(uint8_t num_pin, uint32_t addr);
 void Flash_Receive(uint8_t num_pin, uint32_t addr);
 void Flash_SectorErase(uint8_t num_pin, uint32_t addr);
-bool Flash_WaitForReady(uint8_t num_pin, uint32_t timeout);
 
 
 uint8_t CS_num = 0;
@@ -22,7 +18,7 @@ uint32_t addr = 0x000000;     // адресс
 uint8_t txbuf [1 + 3 + 256] = {0};  // 1 байт комада + 3 байта адреса + 256 байт данных
 uint8_t rxbuf [256] = {0};      // 256 байт данных
 uint8_t data_TX [256] = {
-    1, 2, 3, 4, 5, 6, 7, 8, 9, 10,
+    15, 2, 35, 4, 5, 6, 7, 8, 9, 10,
     11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
     21, 22, 23, 24, 25, 26, 27, 28, 29, 30,
     31, 32, 33, 34, 35, 36, 37, 38, 39, 40,

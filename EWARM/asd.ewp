@@ -62,7 +62,7 @@
         </option>
         <option>
           <name>RTDescription</name>
-          <state>Use the full configuration of the C/C++ runtime library. Full locale interface, C locale, file descriptor support, multibytes in printf and scanf, and hex floats in strtod.</state>
+          <state>A complete configuration of the C/C++14 runtime library. Full locale interface, C locale, file descriptor support, multibytes in printf and scanf, and hex floats in strtod.</state>
         </option>
         <option>
           <name>OGProductVersion</name>
@@ -359,6 +359,9 @@
           <state>$PROJ_DIR$/../Drivers/CMSIS/Device/ST/STM32F2xx/Include</state>
           <state>$PROJ_DIR$/../Drivers/CMSIS/Include</state>
           <state>D:\Code\qwer\flash</state>
+          <state>D:\Code\qwer\RS485</state>
+          <state>D:\Code\qwer\ADC</state>
+          <state>D:\Code\qwer\Peripheral\Inc</state>
         </option>
         <option>
           <name>CCStdIncCheck</name>
@@ -686,7 +689,7 @@
       <data>
         <extensions></extensions>
         <cmdline></cmdline>
-        <hasPrio>200</hasPrio>
+        <hasPrio>1</hasPrio>
         <buildSequence>inputOutputBased</buildSequence>
       </data>
     </settings>
@@ -1097,6 +1100,15 @@
     </settings>
   </configuration>
   <group>
+    <name>ADC</name>
+    <file>
+      <name>$PROJ_DIR$\..\ADC\ADC.c</name>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\ADC\ADC.h</name>
+    </file>
+  </group>
+  <group>
     <name>Application</name>
     <group>
       <name>EWARM</name>
@@ -1119,6 +1131,15 @@
         </file>
       </group>
     </group>
+  </group>
+  <group>
+    <name>Driver</name>
+    <file>
+      <name>$PROJ_DIR$\..\Peripheral\Src\ADS131E08.c</name>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\Peripheral\Inc\ADS131E08.h</name>
+    </file>
   </group>
   <group>
     <name>Drivers</name>
@@ -1169,6 +1190,9 @@
       <file>
         <name>$PROJ_DIR$\..\Drivers\STM32F2xx_HAL_Driver\Src\stm32f2xx_hal_exti.c</name>
       </file>
+      <file>
+        <name>$PROJ_DIR$\..\Drivers\STM32F2xx_HAL_Driver\Src\stm32f2xx_hal_uart.c</name>
+      </file>
     </group>
   </group>
   <group>
@@ -1178,6 +1202,15 @@
     </file>
     <file>
       <name>$PROJ_DIR$\..\flash\flash.h</name>
+    </file>
+  </group>
+  <group>
+    <name>RS485</name>
+    <file>
+      <name>$PROJ_DIR$\..\RS485\RS485.c</name>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\RS485\RS485.h</name>
     </file>
   </group>
 </project>

@@ -1460,6 +1460,15 @@
         </settings>
     </configuration>
     <group>
+        <name>ADC</name>
+        <file>
+            <name>$PROJ_DIR$\..\ADC\ADC.c</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\ADC\ADC.h</name>
+        </file>
+    </group>
+    <group>
         <name>Application</name>
         <group>
             <name>EWARM</name>
@@ -1482,6 +1491,15 @@
                 </file>
             </group>
         </group>
+    </group>
+    <group>
+        <name>Driver</name>
+        <file>
+            <name>$PROJ_DIR$\..\Peripheral\Src\ADS131E08.c</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\Peripheral\Inc\ADS131E08.h</name>
+        </file>
     </group>
     <group>
         <name>Drivers</name>
@@ -1532,6 +1550,9 @@
             <file>
                 <name>$PROJ_DIR$\..\Drivers\STM32F2xx_HAL_Driver\Src\stm32f2xx_hal_spi.c</name>
             </file>
+            <file>
+                <name>$PROJ_DIR$\..\Drivers\STM32F2xx_HAL_Driver\Src\stm32f2xx_hal_uart.c</name>
+            </file>
         </group>
     </group>
     <group>
@@ -1541,6 +1562,15 @@
         </file>
         <file>
             <name>$PROJ_DIR$\..\flash\flash.h</name>
+        </file>
+    </group>
+    <group>
+        <name>RS485</name>
+        <file>
+            <name>$PROJ_DIR$\..\RS485\RS485.c</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\RS485\RS485.h</name>
         </file>
     </group>
 </project>

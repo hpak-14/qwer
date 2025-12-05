@@ -18,9 +18,11 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "ADS131E08.h"
+#include "ADC.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -43,6 +45,8 @@ SPI_HandleTypeDef hspi1;
 DMA_HandleTypeDef hdma_spi1_rx;
 DMA_HandleTypeDef hdma_spi1_tx;
 
+UART_HandleTypeDef huart4;
+
 /* USER CODE BEGIN PV */
 
 /* USER CODE END PV */
@@ -52,19 +56,22 @@ void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_DMA_Init(void);
 static void MX_SPI1_Init(void);
+static void MX_UART4_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-// Мой код(
-  extern void Flash_Receive(uint8_t num_pin, uint32_t addr);
-  extern void Flash_Transmit(uint8_t num_pin, uint32_t addr);
-  extern uint32_t addr;
+// пїЅпїЅпїЅ пїЅпїЅпїЅ(
+extern int16_t channel_codes[8];
+extern   uint8_t ADC_rx_data[19];
   uint8_t experement = 0;
   uint8_t chip = 0;
-// Мой код)
+    float ch1_voltage = 0;
+    uint8_t adc_data_ready = 0;
+    uint32_t SPI1_CR1 = 0;
+// пїЅпїЅпїЅ пїЅпїЅпїЅ)
 /* USER CODE END 0 */
 
 /**
@@ -100,34 +107,42 @@ int main(void)
   MX_GPIO_Init();
   MX_DMA_Init();
   MX_SPI1_Init();
+  MX_UART4_Init();
   /* USER CODE BEGIN 2 */
 
+  ADS131E0_RESET();
+ 
+  
+     
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-    /* USER CODE END WHILE */
-   //HAL_GPIO_WritePin(GPIOE, 0, GPIO_PIN_SET);
-    if (experement == 1) {
-        Flash_Transmit(chip, 0x000000);
-        experement = 0;
-    }
-    if (experement == 2) {
-      Flash_Receive(chip, 0x000000);
+    
+    SPI1_CR1 = SPI1 -> CR1;
+    
+    if (experement == 1){
+        ADS131E0_RESET();
       experement = 0;
     }
-    if (experement == 3) {
-      test_1();
-          experement = 0;
+    
+    if (experement == 2){
+      HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_8);
+      experement = 0;
     }
-     if (experement == 4) {
-      Flash_cmd(0x06, chip);
-      HAL_Delay(10);
-      Flash_cmd(0x98, chip);
-          experement = 0;
+    
+            if (HAL_GPIO_ReadPin(GPIOE, GPIO_PIN_2) == GPIO_PIN_RESET){
+           ADS131E0_DataRead();
+        }
+    
+    if (experement == 3){
+      ADS131E0_ReadID();
+      experement = 0;
     }
+    
+    /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
   }
@@ -149,7 +164,12 @@ void SystemClock_Config(void)
   RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI;
   RCC_OscInitStruct.HSIState = RCC_HSI_ON;
   RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
-  RCC_OscInitStruct.PLL.PLLState = RCC_PLL_NONE;
+  RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
+  RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSI;
+  RCC_OscInitStruct.PLL.PLLM = 13;
+  RCC_OscInitStruct.PLL.PLLN = 195;
+  RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV2;
+  RCC_OscInitStruct.PLL.PLLQ = 4;
   if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
   {
     Error_Handler();
@@ -159,15 +179,16 @@ void SystemClock_Config(void)
   */
   RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
                               |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
-  RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_HSI;
+  RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
   RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
-  RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV1;
-  RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
+  RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV4;
+  RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV2;
 
-  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_0) != HAL_OK)
+  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_3) != HAL_OK)
   {
     Error_Handler();
   }
+  HAL_RCC_MCOConfig(RCC_MCO2, RCC_MCO2SOURCE_SYSCLK, RCC_MCODIV_5);
 }
 
 /**
@@ -191,7 +212,7 @@ static void MX_SPI1_Init(void)
   hspi1.Init.Direction = SPI_DIRECTION_2LINES;
   hspi1.Init.DataSize = SPI_DATASIZE_8BIT;
   hspi1.Init.CLKPolarity = SPI_POLARITY_LOW;
-  hspi1.Init.CLKPhase = SPI_PHASE_1EDGE;
+  hspi1.Init.CLKPhase = SPI_PHASE_2EDGE;
   hspi1.Init.NSS = SPI_NSS_SOFT;
   hspi1.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_4;
   hspi1.Init.FirstBit = SPI_FIRSTBIT_MSB;
@@ -205,6 +226,39 @@ static void MX_SPI1_Init(void)
   /* USER CODE BEGIN SPI1_Init 2 */
 
   /* USER CODE END SPI1_Init 2 */
+
+}
+
+/**
+  * @brief UART4 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_UART4_Init(void)
+{
+
+  /* USER CODE BEGIN UART4_Init 0 */
+
+  /* USER CODE END UART4_Init 0 */
+
+  /* USER CODE BEGIN UART4_Init 1 */
+
+  /* USER CODE END UART4_Init 1 */
+  huart4.Instance = UART4;
+  huart4.Init.BaudRate = 115200;
+  huart4.Init.WordLength = UART_WORDLENGTH_8B;
+  huart4.Init.StopBits = UART_STOPBITS_1;
+  huart4.Init.Parity = UART_PARITY_NONE;
+  huart4.Init.Mode = UART_MODE_TX_RX;
+  huart4.Init.HwFlowCtl = UART_HWCONTROL_NONE;
+  huart4.Init.OverSampling = UART_OVERSAMPLING_16;
+  if (HAL_UART_Init(&huart4) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN UART4_Init 2 */
+
+  /* USER CODE END UART4_Init 2 */
 
 }
 
@@ -240,14 +294,24 @@ static void MX_GPIO_Init(void)
   /* USER CODE END MX_GPIO_Init_1 */
 
   /* GPIO Ports Clock Enable */
+  __HAL_RCC_GPIOE_CLK_ENABLE();
   __HAL_RCC_GPIOH_CLK_ENABLE();
   __HAL_RCC_GPIOC_CLK_ENABLE();
+  __HAL_RCC_GPIOA_CLK_ENABLE();
   __HAL_RCC_GPIOD_CLK_ENABLE();
   __HAL_RCC_GPIOB_CLK_ENABLE();
-  __HAL_RCC_GPIOE_CLK_ENABLE();
+
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(GPIOE, RESET_Pin|PWDN_Pin|GPIO_PIN_0|GPIO_PIN_1, GPIO_PIN_SET);
+
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(SPI1_CS_ADC_GPIO_Port, SPI1_CS_ADC_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOC, LED_3_Pin|LED_2_Pin|LED_1_Pin, GPIO_PIN_RESET);
+
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(GPIOA, Start_in_Pin|UART4_DIR_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOD, SPI1_CSf8_Pin|SPI1_CSf7_Pin|SPI1_CSf5_Pin|SPI1_CSf4_Pin
@@ -259,8 +323,20 @@ static void MX_GPIO_Init(void)
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(SPI1_CSf6_GPIO_Port, SPI1_CSf6_Pin, GPIO_PIN_RESET);
 
-  /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOE, GPIO_PIN_0|GPIO_PIN_1, GPIO_PIN_SET);
+  /*Configure GPIO pin : DRDY_Pin */
+  GPIO_InitStruct.Pin = DRDY_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(DRDY_GPIO_Port, &GPIO_InitStruct);
+
+  /*Configure GPIO pins : RESET_Pin PWDN_Pin SPI1_CS_ADC_Pin PE0
+                           PE1 */
+  GPIO_InitStruct.Pin = RESET_Pin|PWDN_Pin|SPI1_CS_ADC_Pin|GPIO_PIN_0
+                          |GPIO_PIN_1;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);
 
   /*Configure GPIO pins : LED_3_Pin LED_2_Pin LED_1_Pin */
   GPIO_InitStruct.Pin = LED_3_Pin|LED_2_Pin|LED_1_Pin;
@@ -268,6 +344,21 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : PC9 */
+  GPIO_InitStruct.Pin = GPIO_PIN_9;
+  GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+  GPIO_InitStruct.Alternate = GPIO_AF0_MCO;
+  HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+
+  /*Configure GPIO pins : Start_in_Pin UART4_DIR_Pin */
+  GPIO_InitStruct.Pin = Start_in_Pin|UART4_DIR_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
   /*Configure GPIO pins : SPI1_CSf8_Pin SPI1_CSf7_Pin SPI1_CSf5_Pin SPI1_CSf4_Pin
                            SPI1_CSf3_Pin SPI1_CSf2_Pin SPI1_CSf1_Pin */
@@ -285,20 +376,13 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(SPI1_CSf6_GPIO_Port, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : PE0 PE1 */
-  GPIO_InitStruct.Pin = GPIO_PIN_0|GPIO_PIN_1;
-  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);
-
   /* USER CODE BEGIN MX_GPIO_Init_2 */
 
   /* USER CODE END MX_GPIO_Init_2 */
 }
 
 /* USER CODE BEGIN 4 */
-// Мой код(
+// пїЅпїЅпїЅ пїЅпїЅпїЅ(
 
   extern uint8_t CS_num;
   extern void FLASH_CS_HIGH(uint8_t num);
@@ -318,14 +402,18 @@ static void MX_GPIO_Init(void)
 
   void HAL_SPI_RxCpltCallback(SPI_HandleTypeDef *hspi)
   {
-      if (hspi == &hspi1)      
-      {
-         //FLASH_CS_HIGH(CS_num);
-          DMA_RX_Finish = 1;
-      }
+     //delay(25);
+      //HAL_GPIO_WritePin(GPIOE, GPIO_PIN_6, GPIO_PIN_SET);// ADC_CS_HIGH 
+  
+   
+   
+        
+       // channel_codes[0] = (int16_t)((ADC_rx_data[3] << 8) | ADC_rx_data[4]);
+      
+
   }
  
-// Мой код)
+// пїЅпїЅпїЅ пїЅпїЅпїЅ)
 /* USER CODE END 4 */
 
 /**
