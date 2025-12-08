@@ -124,7 +124,7 @@ int main(void)
     SPI1_CR1 = SPI1 -> CR1;
     
     if (experement == 1){
-        ADS131E0_RESET();
+      ADS131E0_Conf();
       experement = 0;
     }
     
@@ -133,13 +133,13 @@ int main(void)
       experement = 0;
     }
     
-            if (HAL_GPIO_ReadPin(GPIOE, GPIO_PIN_2) == GPIO_PIN_RESET){
-           ADS131E0_DataRead();
-        }
-    
     if (experement == 3){
       ADS131E0_ReadID();
       experement = 0;
+    }
+    
+    if (HAL_GPIO_ReadPin(GPIOE, GPIO_PIN_2) == GPIO_PIN_RESET){
+      ADS131E0_DataRead();
     }
     
     /* USER CODE END WHILE */
@@ -402,15 +402,9 @@ static void MX_GPIO_Init(void)
 
   void HAL_SPI_RxCpltCallback(SPI_HandleTypeDef *hspi)
   {
-     //delay(25);
-      //HAL_GPIO_WritePin(GPIOE, GPIO_PIN_6, GPIO_PIN_SET);// ADC_CS_HIGH 
-  
-   
-   
-        
-       // channel_codes[0] = (int16_t)((ADC_rx_data[3] << 8) | ADC_rx_data[4]);
-      
-
+     delay(5);
+     HAL_GPIO_WritePin(GPIOE, GPIO_PIN_6, GPIO_PIN_SET);// ADC_CS_HIGH 
+     channel_codes[0] = (int16_t)((ADC_rx_data[3] << 8) | ADC_rx_data[4]);
   }
  
 // ��� ���)
