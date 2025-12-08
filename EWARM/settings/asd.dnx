@@ -1,19 +1,19 @@
 <?xml version="1.0"?>
 <settings>
     <StLinkDriver>
+        <stlinkserialNo>066BFF535455886687122214</stlinkserialNo>
+        <stlinkfoundProbes />
         <LeaveTargetRunning>_ 0</LeaveTargetRunning>
         <CStepIntDis>_ 0</CStepIntDis>
         <stlinkResetStyle>0</stlinkResetStyle>
         <stlinkResetStrategy>2</stlinkResetStrategy>
-        <stlinkserialNo>066BFF535455886687122214</stlinkserialNo>
-        <stlinkfoundProbes />
     </StLinkDriver>
     <PlDriver>
-        <MemConfigValue>C:\Program Files\IAR Systems\Embedded Workbench 9.2\arm\config\debugger\ST\STM32F207VE.ddf</MemConfigValue>
         <FirstRun>0</FirstRun>
+        <MemConfigValue>C:\Program Files\IAR Systems\Embedded Workbench 9.2\arm\config\debugger\ST\STM32F207VE.ddf</MemConfigValue>
     </PlDriver>
     <DebugChecksum>
-        <Checksum>3012770727</Checksum>
+        <Checksum>36236400</Checksum>
     </DebugChecksum>
     <Exceptions>
         <StopOnUncaught>_ 0</StopOnUncaught>
