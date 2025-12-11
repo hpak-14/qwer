@@ -21,8 +21,8 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "ADS131E08.h"
 #include "ADC.h"
+#include "ModbusRTU_Slave.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -57,6 +57,7 @@ static void MX_GPIO_Init(void);
 static void MX_DMA_Init(void);
 static void MX_SPI1_Init(void);
 static void MX_UART4_Init(void);
+static void MX_NVIC_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -64,13 +65,20 @@ static void MX_UART4_Init(void);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 // ��� ���(
-extern int16_t channel_codes[8];
-extern   uint8_t ADC_rx_data[19];
-  uint8_t experement = 0;
-  uint8_t chip = 0;
+    extern int16_t channel_codes[8];
+    extern   uint8_t ADC_rx_data[19];
+    uint8_t experement = 0;
+    uint8_t chip = 0;
     float ch1_voltage = 0;
     uint8_t adc_data_ready = 0;
     uint32_t SPI1_CR1 = 0;
+    int16_t ADC_data[2200] = {0};
+    uint32_t cikl = 0;
+    
+    
+
+
+    
 // ��� ���)
 /* USER CODE END 0 */
 
@@ -108,11 +116,21 @@ int main(void)
   MX_DMA_Init();
   MX_SPI1_Init();
   MX_UART4_Init();
+
+  /* Initialize interrupts */
+  MX_NVIC_Init();
   /* USER CODE BEGIN 2 */
 
   ADS131E0_RESET();
- 
-  
+
+  // Инициализация Modbus
+    DataCounter = 0;
+    RxInterruptFlag = RESET;
+    uartTimeCounter = 0;
+    uartPacketComplatedFlag = RESET;
+    HAL_UART_Receive_IT(&huart4, &uartRxData, 1);  // Включаем прерывание по приему
+    
+
      
   /* USER CODE END 2 */
 
@@ -124,12 +142,14 @@ int main(void)
     SPI1_CR1 = SPI1 -> CR1;
     
     if (experement == 1){
-      ADS131E0_Conf();
-      experement = 0;
+        memset(ADC_data, 0, sizeof(ADC_data));
+        cikl = 0;
+        experement = 0;
     }
     
+    
     if (experement == 2){
-      HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_8);
+      ADC_START_ON
       experement = 0;
     }
     
@@ -137,10 +157,10 @@ int main(void)
       ADS131E0_ReadID();
       experement = 0;
     }
-    
-    if (HAL_GPIO_ReadPin(GPIOE, GPIO_PIN_2) == GPIO_PIN_RESET){
-      ADS131E0_DataRead();
-    }
+     
+    uartDataHandler();  // Обработка полученных данных
+
+
     
     /* USER CODE END WHILE */
 
@@ -189,6 +209,20 @@ void SystemClock_Config(void)
     Error_Handler();
   }
   HAL_RCC_MCOConfig(RCC_MCO2, RCC_MCO2SOURCE_SYSCLK, RCC_MCODIV_5);
+}
+
+/**
+  * @brief NVIC Configuration.
+  * @retval None
+  */
+static void MX_NVIC_Init(void)
+{
+  /* EXTI2_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(EXTI2_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(EXTI2_IRQn);
+  /* UART4_IRQn interrupt configuration - ДОБАВЬТЕ ЭТО! */
+  HAL_NVIC_SetPriority(UART4_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(UART4_IRQn);
 }
 
 /**
@@ -323,11 +357,11 @@ static void MX_GPIO_Init(void)
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(SPI1_CSf6_GPIO_Port, SPI1_CSf6_Pin, GPIO_PIN_RESET);
 
-  /*Configure GPIO pin : DRDY_Pin */
-  GPIO_InitStruct.Pin = DRDY_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  /*Configure GPIO pin : PE2 */
+  GPIO_InitStruct.Pin = GPIO_PIN_2;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(DRDY_GPIO_Port, &GPIO_InitStruct);
+  HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);
 
   /*Configure GPIO pins : RESET_Pin PWDN_Pin SPI1_CS_ADC_Pin PE0
                            PE1 */
@@ -384,29 +418,51 @@ static void MX_GPIO_Init(void)
 /* USER CODE BEGIN 4 */
 // ��� ���(
 
-  extern uint8_t CS_num;
-  extern void FLASH_CS_HIGH(uint8_t num);
-  extern uint8_t DMA_TX_Finish;
-  
-  extern void FLASH_CS_LOW(uint8_t num);
-  extern uint8_t DMA_RX_Finish;
   
   void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi)
   {
-      if (hspi == &hspi1)      
-      {
-          //FLASH_CS_HIGH(CS_num);
-          DMA_TX_Finish = 1;
-      }
+
   }
 
   void HAL_SPI_RxCpltCallback(SPI_HandleTypeDef *hspi)
   {
-     delay(5);
-     HAL_GPIO_WritePin(GPIOE, GPIO_PIN_6, GPIO_PIN_SET);// ADC_CS_HIGH 
-     channel_codes[0] = (int16_t)((ADC_rx_data[3] << 8) | ADC_rx_data[4]);
+
   }
- 
+
+void HAL_SPI_TxRxCpltCallback(SPI_HandleTypeDef *hspi)
+{
+     delay(25);
+     ADC_CS_HIGH;
+     //channel_codes[0] = (int16_t)((ADC_rx_data[3] << 8) | ADC_rx_data[4]);
+     uint16_t hi = (uint16_t)ADC_rx_data[3];
+     uint16_t lo = (uint16_t)ADC_rx_data[4];
+     
+     if (cikl <2200){
+        ADC_data[cikl] = (uint16_t)((hi << 8) | lo);
+        cikl++;
+     }
+    ModbusRegister[0] = (uint16_t)((hi << 8) | lo);
+}
+
+void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart)
+{
+    if(huart->Instance == UART4)
+    {
+        // Небольшая задержка
+        volatile uint32_t delay = 10;
+        while(delay--);
+        
+        // Переключаемся в режим приема
+        HAL_GPIO_WritePin(UART4_DIR_GPIO_Port, UART4_DIR_Pin, GPIO_PIN_RESET);
+    }
+}
+
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
+{
+ delay(5);
+ ADS131E0_DataRead();
+}
+
 // ��� ���)
 /* USER CODE END 4 */
 

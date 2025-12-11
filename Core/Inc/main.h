@@ -57,8 +57,6 @@ void Error_Handler(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
-#define DRDY_Pin GPIO_PIN_2
-#define DRDY_GPIO_Port GPIOE
 #define RESET_Pin GPIO_PIN_3
 #define RESET_GPIO_Port GPIOE
 #define PWDN_Pin GPIO_PIN_4

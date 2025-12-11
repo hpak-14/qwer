@@ -1493,15 +1493,6 @@
         </group>
     </group>
     <group>
-        <name>Driver</name>
-        <file>
-            <name>$PROJ_DIR$\..\Peripheral\Src\ADS131E08.c</name>
-        </file>
-        <file>
-            <name>$PROJ_DIR$\..\Peripheral\Inc\ADS131E08.h</name>
-        </file>
-    </group>
-    <group>
         <name>Drivers</name>
         <group>
             <name>CMSIS</name>
@@ -1562,6 +1553,15 @@
         </file>
         <file>
             <name>$PROJ_DIR$\..\flash\flash.h</name>
+        </file>
+    </group>
+    <group>
+        <name>Modbus</name>
+        <file>
+            <name>$PROJ_DIR$\..\Modbus\ModbusRTU_Slave.c</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\Modbus\ModbusRTU_Slave.h</name>
         </file>
     </group>
     <group>
