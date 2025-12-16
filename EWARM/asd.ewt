@@ -1556,6 +1556,15 @@
         </file>
     </group>
     <group>
+        <name>Log</name>
+        <file>
+            <name>$PROJ_DIR$\..\Log\Log.c</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\Log\Log.h</name>
+        </file>
+    </group>
+    <group>
         <name>Modbus</name>
         <file>
             <name>$PROJ_DIR$\..\Modbus\ModbusRTU_Slave.c</name>

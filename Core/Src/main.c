@@ -23,6 +23,7 @@
 /* USER CODE BEGIN Includes */
 #include "ADC.h"
 #include "ModbusRTU_Slave.h"
+#include "flash.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -42,8 +43,11 @@
 
 /* Private variables ---------------------------------------------------------*/
 SPI_HandleTypeDef hspi1;
+SPI_HandleTypeDef hspi2;
 DMA_HandleTypeDef hdma_spi1_rx;
 DMA_HandleTypeDef hdma_spi1_tx;
+DMA_HandleTypeDef hdma_spi2_rx;
+DMA_HandleTypeDef hdma_spi2_tx;
 
 UART_HandleTypeDef huart4;
 
@@ -55,8 +59,9 @@ UART_HandleTypeDef huart4;
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_DMA_Init(void);
-static void MX_SPI1_Init(void);
 static void MX_UART4_Init(void);
+static void MX_SPI2_Init(void);
+static void MX_SPI1_Init(void);
 static void MX_NVIC_Init(void);
 /* USER CODE BEGIN PFP */
 
@@ -65,16 +70,19 @@ static void MX_NVIC_Init(void);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 // ��� ���(
-    extern int16_t channel_codes[8];
-    extern   uint8_t ADC_rx_data[19];
+
+    extern uint8_t Code_ADC[256];
+    extern uint8_t ADC_rx_data[19];
+  
+    uint32_t schet = 0;
     uint8_t experement = 0;
     uint8_t chip = 0;
     float ch1_voltage = 0;
     uint8_t adc_data_ready = 0;
     uint32_t SPI1_CR1 = 0;
-    int16_t ADC_data[2200] = {0};
+    int16_t ADC_data[256] = {0};
     uint32_t cikl = 0;
-    
+
     
 
 
@@ -90,9 +98,7 @@ int main(void)
 {
 
   /* USER CODE BEGIN 1 */
-  extern void Flash_cmd(uint8_t cmd, uint8_t CS);
- // Flash_cmd(0x98, 0);
-  extern void test_1();
+
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -114,22 +120,24 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_DMA_Init();
-  MX_SPI1_Init();
   MX_UART4_Init();
+  MX_SPI2_Init();
+  MX_SPI1_Init();
 
   /* Initialize interrupts */
   MX_NVIC_Init();
   /* USER CODE BEGIN 2 */
 
   ADS131E0_RESET();
-
+  memset(Code_ADC, 0, sizeof(Code_ADC));
+  schet = 0;
+  
   // Инициализация Modbus
     DataCounter = 0;
     RxInterruptFlag = RESET;
     uartTimeCounter = 0;
     uartPacketComplatedFlag = RESET;
     HAL_UART_Receive_IT(&huart4, &uartRxData, 1);  // Включаем прерывание по приему
-    
 
      
   /* USER CODE END 2 */
@@ -138,30 +146,24 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-    
     SPI1_CR1 = SPI1 -> CR1;
-    
+   
     if (experement == 1){
+        ADC_START_ON
+        experement = 0;
+    }
+        if (experement == 2){
         memset(ADC_data, 0, sizeof(ADC_data));
         cikl = 0;
         experement = 0;
     }
-    
-    
-    if (experement == 2){
-      ADC_START_ON
-      experement = 0;
-    }
-    
-    if (experement == 3){
-      ADS131E0_ReadID();
-      experement = 0;
-    }
      
-    uartDataHandler();  // Обработка полученных данных
-
-
     
+    
+    
+    
+    
+    uartDataHandler();  // Обработка полученных данных
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -220,9 +222,6 @@ static void MX_NVIC_Init(void)
   /* EXTI2_IRQn interrupt configuration */
   HAL_NVIC_SetPriority(EXTI2_IRQn, 0, 0);
   HAL_NVIC_EnableIRQ(EXTI2_IRQn);
-  /* UART4_IRQn interrupt configuration - ДОБАВЬТЕ ЭТО! */
-  HAL_NVIC_SetPriority(UART4_IRQn, 0, 0);
-  HAL_NVIC_EnableIRQ(UART4_IRQn);
 }
 
 /**
@@ -246,9 +245,9 @@ static void MX_SPI1_Init(void)
   hspi1.Init.Direction = SPI_DIRECTION_2LINES;
   hspi1.Init.DataSize = SPI_DATASIZE_8BIT;
   hspi1.Init.CLKPolarity = SPI_POLARITY_LOW;
-  hspi1.Init.CLKPhase = SPI_PHASE_2EDGE;
+  hspi1.Init.CLKPhase = SPI_PHASE_1EDGE;
   hspi1.Init.NSS = SPI_NSS_SOFT;
-  hspi1.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_16;
+  hspi1.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_2;
   hspi1.Init.FirstBit = SPI_FIRSTBIT_MSB;
   hspi1.Init.TIMode = SPI_TIMODE_DISABLE;
   hspi1.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
@@ -260,6 +259,44 @@ static void MX_SPI1_Init(void)
   /* USER CODE BEGIN SPI1_Init 2 */
 
   /* USER CODE END SPI1_Init 2 */
+
+}
+
+/**
+  * @brief SPI2 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_SPI2_Init(void)
+{
+
+  /* USER CODE BEGIN SPI2_Init 0 */
+
+  /* USER CODE END SPI2_Init 0 */
+
+  /* USER CODE BEGIN SPI2_Init 1 */
+
+  /* USER CODE END SPI2_Init 1 */
+  /* SPI2 parameter configuration*/
+  hspi2.Instance = SPI2;
+  hspi2.Init.Mode = SPI_MODE_MASTER;
+  hspi2.Init.Direction = SPI_DIRECTION_2LINES;
+  hspi2.Init.DataSize = SPI_DATASIZE_8BIT;
+  hspi2.Init.CLKPolarity = SPI_POLARITY_LOW;
+  hspi2.Init.CLKPhase = SPI_PHASE_1EDGE;
+  hspi2.Init.NSS = SPI_NSS_SOFT;
+  hspi2.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_4;
+  hspi2.Init.FirstBit = SPI_FIRSTBIT_MSB;
+  hspi2.Init.TIMode = SPI_TIMODE_DISABLE;
+  hspi2.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
+  hspi2.Init.CRCPolynomial = 10;
+  if (HAL_SPI_Init(&hspi2) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN SPI2_Init 2 */
+
+  /* USER CODE END SPI2_Init 2 */
 
 }
 
@@ -303,9 +340,16 @@ static void MX_DMA_Init(void)
 {
 
   /* DMA controller clock enable */
+  __HAL_RCC_DMA1_CLK_ENABLE();
   __HAL_RCC_DMA2_CLK_ENABLE();
 
   /* DMA interrupt init */
+  /* DMA1_Stream3_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA1_Stream3_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(DMA1_Stream3_IRQn);
+  /* DMA1_Stream4_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA1_Stream4_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(DMA1_Stream4_IRQn);
   /* DMA2_Stream0_IRQn interrupt configuration */
   HAL_NVIC_SetPriority(DMA2_Stream0_IRQn, 0, 0);
   HAL_NVIC_EnableIRQ(DMA2_Stream0_IRQn);
@@ -330,10 +374,10 @@ static void MX_GPIO_Init(void)
   /* GPIO Ports Clock Enable */
   __HAL_RCC_GPIOE_CLK_ENABLE();
   __HAL_RCC_GPIOH_CLK_ENABLE();
+  __HAL_RCC_GPIOB_CLK_ENABLE();
   __HAL_RCC_GPIOC_CLK_ENABLE();
   __HAL_RCC_GPIOA_CLK_ENABLE();
   __HAL_RCC_GPIOD_CLK_ENABLE();
-  __HAL_RCC_GPIOB_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOE, RESET_Pin|PWDN_Pin|GPIO_PIN_0|GPIO_PIN_1, GPIO_PIN_SET);
@@ -418,30 +462,35 @@ static void MX_GPIO_Init(void)
 /* USER CODE BEGIN 4 */
 // ��� ���(
 
-  
-  void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi)
+ void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi)
   {
-
+      if (hspi == &hspi2)      
+      {
+          FLASH_CS_HIGH(CS_num);
+      }
   }
 
   void HAL_SPI_RxCpltCallback(SPI_HandleTypeDef *hspi)
   {
-
+      if (hspi == &hspi2)      
+      {
+         FLASH_CS_HIGH(CS_num);
+      }
   }
+  
 
 void HAL_SPI_TxRxCpltCallback(SPI_HandleTypeDef *hspi)
 {
-     delay(25);
-     ADC_CS_HIGH;
-     //channel_codes[0] = (int16_t)((ADC_rx_data[3] << 8) | ADC_rx_data[4]);
+      delay(5);
+      ADC_CS_HIGH;
+     
      uint16_t hi = (uint16_t)ADC_rx_data[3];
      uint16_t lo = (uint16_t)ADC_rx_data[4];
      
-     if (cikl <2200){
+     if (cikl <255){
         ADC_data[cikl] = (uint16_t)((hi << 8) | lo);
         cikl++;
-     }
-    ModbusRegister[0] = (uint16_t)((hi << 8) | lo);
+     }            
 }
 
 void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart)
@@ -453,7 +502,7 @@ void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart)
         while(delay--);
         
         // Переключаемся в режим приема
-        HAL_GPIO_WritePin(UART4_DIR_GPIO_Port, UART4_DIR_Pin, GPIO_PIN_RESET);
+        HAL_GPIO_WritePin(GPIOA, GPIO_PIN_10, GPIO_PIN_RESET); 
     }
 }
 
@@ -462,6 +511,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
  delay(5);
  ADS131E0_DataRead();
 }
+
 
 // ��� ���)
 /* USER CODE END 4 */

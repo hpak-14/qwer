@@ -13,11 +13,11 @@
         <FirstRun>0</FirstRun>
     </PlDriver>
     <DebugChecksum>
-        <Checksum>3893764221</Checksum>
+        <Checksum>453542009</Checksum>
     </DebugChecksum>
     <Exceptions>
-        <StopOnUncaught>_ 0</StopOnUncaught>
         <StopOnThrow>_ 0</StopOnThrow>
+        <StopOnUncaught>_ 0</StopOnUncaught>
     </Exceptions>
     <Disassembly>
         <MixedMode>1</MixedMode>
@@ -75,15 +75,17 @@
     <array_types>
         <Fmt0>char[205]	5	0</Fmt0>
         <Fmt1>char[8]	3	0</Fmt1>
-        <Fmt2>int16_t[8]	4	0</Fmt2>
-        <Fmt3>uint8_t[19]	4	0</Fmt3>
-        <Fmt4>uint8_t[256]	5	0</Fmt4>
-        <Fmt5>uint8_t[259]	3	0</Fmt5>
-        <Fmt6>uint8_t[260]	3	0</Fmt6>
-        <Fmt7>uint8_t[261]	3	0</Fmt7>
-        <Fmt8>uint8_t[27]	1	0</Fmt8>
-        <Fmt9>uint8_t[2]	1	0</Fmt9>
-        <Fmt10>uint8_t[3]	1	0</Fmt10>
+        <Fmt2>int16_t[128]	3	0</Fmt2>
+        <Fmt3>int16_t[8]	4	0</Fmt3>
+        <Fmt4>uint16_t[256]	4	0</Fmt4>
+        <Fmt5>uint8_t[19]	4	0</Fmt5>
+        <Fmt6>uint8_t[256]	4	0</Fmt6>
+        <Fmt7>uint8_t[259]	3	0</Fmt7>
+        <Fmt8>uint8_t[260]	3	0</Fmt8>
+        <Fmt9>uint8_t[261]	3	0</Fmt9>
+        <Fmt10>uint8_t[27]	1	0</Fmt10>
+        <Fmt11>uint8_t[2]	1	0</Fmt11>
+        <Fmt12>uint8_t[3]	1	0</Fmt12>
     </array_types>
     <watch_formats>
         <Fmt0>{W}42:SPI1_CR1	5	0</Fmt0>

@@ -13,6 +13,7 @@ uint8_t RxInterruptFlag;
 uint8_t uartTimeCounter;
 uint8_t uartPacketComplatedFlag;
 
+    
 char ModbusRx[BUFFERSIZE];
 char tempModbusRx[BUFFERSIZE];
 char ModbusTx[BUFFERSIZE];
@@ -118,8 +119,7 @@ void uartTimer(void)
 void sendMessage(char *msg, uint8_t len)
 {
         HAL_GPIO_WritePin(GPIOA, GPIO_PIN_10, GPIO_PIN_SET);  
-	HAL_UART_Transmit(&huart4, (uint8_t *)msg, len, 1000);
-        HAL_GPIO_WritePin(GPIOA, GPIO_PIN_10, GPIO_PIN_RESET);  
+	HAL_UART_Transmit_IT(&huart4, (uint8_t *)msg, len); 
 }
 
 
