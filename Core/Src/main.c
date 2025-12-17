@@ -80,7 +80,7 @@ static void MX_NVIC_Init(void);
     float ch1_voltage = 0;
     uint8_t adc_data_ready = 0;
     uint32_t SPI1_CR1 = 0;
-    int16_t ADC_data[256] = {0};
+    int16_t ADC_data[2200] = {0};
     uint32_t cikl = 0;
 
     
@@ -245,9 +245,9 @@ static void MX_SPI1_Init(void)
   hspi1.Init.Direction = SPI_DIRECTION_2LINES;
   hspi1.Init.DataSize = SPI_DATASIZE_8BIT;
   hspi1.Init.CLKPolarity = SPI_POLARITY_LOW;
-  hspi1.Init.CLKPhase = SPI_PHASE_1EDGE;
+  hspi1.Init.CLKPhase = SPI_PHASE_2EDGE;
   hspi1.Init.NSS = SPI_NSS_SOFT;
-  hspi1.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_2;
+  hspi1.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_8;
   hspi1.Init.FirstBit = SPI_FIRSTBIT_MSB;
   hspi1.Init.TIMode = SPI_TIMODE_DISABLE;
   hspi1.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
@@ -484,13 +484,29 @@ void HAL_SPI_TxRxCpltCallback(SPI_HandleTypeDef *hspi)
       delay(5);
       ADC_CS_HIGH;
      
-     uint16_t hi = (uint16_t)ADC_rx_data[3];
-     uint16_t lo = (uint16_t)ADC_rx_data[4];
-     
-     if (cikl <255){
-        ADC_data[cikl] = (uint16_t)((hi << 8) | lo);
-        cikl++;
-     }            
+      ModbusRegister[0] = (int16_t)(((uint16_t)ADC_rx_data[3]  << 8) | ADC_rx_data[4]);   // CH1
+      ModbusRegister[1] = (int16_t)(((uint16_t)ADC_rx_data[5]  << 8) | ADC_rx_data[6]);   // CH2
+      ModbusRegister[2] = (int16_t)(((uint16_t)ADC_rx_data[7]  << 8) | ADC_rx_data[8]);   // CH3
+      ModbusRegister[3] = (int16_t)(((uint16_t)ADC_rx_data[9]  << 8) | ADC_rx_data[10]);  // CH4
+      ModbusRegister[4] = (int16_t)(((uint16_t)ADC_rx_data[11] << 8) | ADC_rx_data[12]);  // CH5
+      ModbusRegister[5] = (int16_t)(((uint16_t)ADC_rx_data[13] << 8) | ADC_rx_data[14]);  // CH6
+      ModbusRegister[6] = (int16_t)(((uint16_t)ADC_rx_data[15] << 8) | ADC_rx_data[16]);  // CH7
+      ModbusRegister[7] = (int16_t)(((uint16_t)ADC_rx_data[17] << 8) | ADC_rx_data[18]);  // CH8
+      
+      //if (cikl < 274) {
+         // uint16_t base = 8 * cikl;
+          
+          ADC_data[0] = (int16_t)(((uint16_t)ADC_rx_data[3]  << 8) | ADC_rx_data[4]);   // CH1
+          ADC_data[1] = (int16_t)(((uint16_t)ADC_rx_data[5]  << 8) | ADC_rx_data[6]);   // CH2
+          ADC_data[2] = (int16_t)(((uint16_t)ADC_rx_data[7]  << 8) | ADC_rx_data[8]);   // CH3
+          ADC_data[3] = (int16_t)(((uint16_t)ADC_rx_data[9]  << 8) | ADC_rx_data[10]);  // CH4
+          ADC_data[4] = (int16_t)(((uint16_t)ADC_rx_data[11] << 8) | ADC_rx_data[12]);  // CH5
+          ADC_data[5] = (int16_t)(((uint16_t)ADC_rx_data[13] << 8) | ADC_rx_data[14]);  // CH6
+          ADC_data[6] = (int16_t)(((uint16_t)ADC_rx_data[15] << 8) | ADC_rx_data[16]);  // CH7
+          ADC_data[7] = (int16_t)(((uint16_t)ADC_rx_data[17] << 8) | ADC_rx_data[18]);  // CH8
+
+         // cikl++;
+     // }         
 }
 
 void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart)

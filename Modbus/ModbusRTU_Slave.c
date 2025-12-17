@@ -90,7 +90,7 @@ void uartDataHandler(void)
 
 		/*CRC Check*/
 		CRCValue = MODBUS_CRC16(tempModbusRx, tempCounter - 2);
-		rxCRC = (tempModbusRx[tempCounter -1] << 8) | (tempModbusRx[tempCounter - 2]);
+		rxCRC = (tempModbusRx[tempCounter -2] << 8) | (tempModbusRx[tempCounter - 1]);
 
 		/*If the calculated CRC value and the received CRC value are equal and the Slave ID is correct, respond to the receiving data.  */
 		if(rxCRC == CRCValue && tempModbusRx[0] == SLAVEID)
@@ -320,7 +320,7 @@ uint16_t MODBUS_CRC16(char *buf, uint8_t len )
 		}
 	}
 
-	return crc;
+	return (crc << 8) | (crc >> 8);
 }
 
 
