@@ -6,9 +6,10 @@
 extern SPI_HandleTypeDef hspi2;
 void Flash_WaitBusy(void);
 void Flash_cmd(uint8_t cmd, uint8_t CS);
-void Flash_Transmit(uint8_t num_pin, uint32_t addr);
+void Flash_Transmit(uint8_t num_pin, uint32_t addr, uint8_t *data_TX);
 void Flash_Receive(uint8_t num_pin, uint32_t addr);
 void Flash_SectorErase(uint8_t num_pin, uint32_t addr);
+void Memory(uint8_t *data_TX);
 
 void FLASH_CS_LOW(uint8_t num);
 void FLASH_CS_HIGH(uint8_t num);
@@ -36,3 +37,7 @@ extern uint8_t cmd;
 #define WRITE_TIMEOUT       1000    // 1 секунда 
 #define ERASE_TIMEOUT       5000    // 5 секунд 
 #define CHIP_ERASE_TIMEOUT  60000   // 60 секунд 
+
+
+extern uint32_t mem_addr;
+extern uint8_t ADC_Code [256];

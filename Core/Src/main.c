@@ -80,7 +80,8 @@ static void MX_NVIC_Init(void);
     float ch1_voltage = 0;
     uint8_t adc_data_ready = 0;
     uint32_t SPI1_CR1 = 0;
-    int16_t ADC_data[2200] = {0};
+    int8_t ADC_data[256] = {0};
+    int8_t ADC_data2[256] = {0};
     uint32_t cikl = 0;
 
     
@@ -493,21 +494,18 @@ void HAL_SPI_TxRxCpltCallback(SPI_HandleTypeDef *hspi)
       ModbusRegister[6] = (int16_t)(((uint16_t)ADC_rx_data[15] << 8) | ADC_rx_data[16]);  // CH7
       ModbusRegister[7] = (int16_t)(((uint16_t)ADC_rx_data[17] << 8) | ADC_rx_data[18]);  // CH8
       
-      //if (cikl < 274) {
-         // uint16_t base = 8 * cikl;
-          
-          ADC_data[0] = (int16_t)(((uint16_t)ADC_rx_data[3]  << 8) | ADC_rx_data[4]);   // CH1
-          ADC_data[1] = (int16_t)(((uint16_t)ADC_rx_data[5]  << 8) | ADC_rx_data[6]);   // CH2
-          ADC_data[2] = (int16_t)(((uint16_t)ADC_rx_data[7]  << 8) | ADC_rx_data[8]);   // CH3
-          ADC_data[3] = (int16_t)(((uint16_t)ADC_rx_data[9]  << 8) | ADC_rx_data[10]);  // CH4
-          ADC_data[4] = (int16_t)(((uint16_t)ADC_rx_data[11] << 8) | ADC_rx_data[12]);  // CH5
-          ADC_data[5] = (int16_t)(((uint16_t)ADC_rx_data[13] << 8) | ADC_rx_data[14]);  // CH6
-          ADC_data[6] = (int16_t)(((uint16_t)ADC_rx_data[15] << 8) | ADC_rx_data[16]);  // CH7
-          ADC_data[7] = (int16_t)(((uint16_t)ADC_rx_data[17] << 8) | ADC_rx_data[18]);  // CH8
-
-         // cikl++;
-     // }         
+      if (cikl < 16) {
+      memcpy(&ADC_data[cikl * 16],  &ADC_rx_data[3], 16);
+      cikl++;
+      }
+      if (cikl == 15){
+          memcpy(&ADC_data2[0], &ADC_data[0], 256);
+          Memory(&ADC_data2[0]);
+          cikl = 0;
+      }
 }
+
+
 
 void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart)
 {
